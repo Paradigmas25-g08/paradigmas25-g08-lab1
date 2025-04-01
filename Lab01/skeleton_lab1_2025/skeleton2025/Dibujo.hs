@@ -1,7 +1,8 @@
 module Dibujo where
 
 -- Definir el lenguaje via constructores de tipo
-data Dibujo a =
+data Dibujo a = Basica a
+              |Rotar (Dibujo a)
 
 
 -- Composición n-veces de una función con sí misma.
