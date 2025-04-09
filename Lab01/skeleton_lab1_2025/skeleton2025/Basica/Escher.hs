@@ -3,26 +3,33 @@ import Graphics.Gloss
 import Dibujo
 import Interp
 import Basica.Comun
+import qualified Graphics.Gloss.Data.Point.Arithmetic as V
 
 -- supongamos que eligen
-type Escher = Bool
+type Escher = Triangulo
+            | Vacio
+
+ejemplo :: Dibujo Escher
+ejemplo = Espejar(Triangulo)
 
 -- el dibujo u
 dibujoU :: Dibujo Escher -> Dibujo Escher
-dibujoU p = encimar4 $ Rot45 p
-
+dibujoU p = Encimar(Encimar(p2,Rotar(p2)),Encimar(Rotar(Rotar(p2)),Rotar(Rotar(Rotar(p2)))))
+    where
+        p2 = Espejar(Rotar45(p))
 -- el dibujo t
 dibujoT :: Dibujo Escher -> Dibujo Escher
-dibujoT d =
-    let r1 = Rot45 d
-        r2 = Espejar $ Rotar (Rot45 d)
-    in (d ^^^ r1) ^^^ r2
+dibujoT d = Encimar(d,Encimar(d2,d3))
+    where
+        d2 = Espejar(Rotar45(d))
+        d3 = Rotar(Rotar(Rotar(d2))) 
+
 
 -- lado con nivel de detalle
 lado :: Int -> Dibujo Escher -> Dibujo Escher
 lado n d
-    | n < 0 = Figura False  -- no deberia pasar
-    | n == 1 = cuarteto (Figura False) (Figura False) (Rotar d) d
+    | n < 0 = Vacio  -- no deberia pasar
+    | n == 1 = cuarteto (Vacio) (Vacio) (Rotar d) d
     | n > 1 =
         let l = lado (n-1) d
         in cuarteto l l (Rotar d) d
@@ -30,8 +37,8 @@ lado n d
 -- esquina con nivel de detalle en base a la figura p
 esquina :: Int -> Dibujo Escher -> Dibujo Escher
 esquina n d
-    | n < 0 = Figura False  -- no deberia pasar
-    | n == 1 = cuarteto (Figura False) (Figura False) (Figura False) (dibujoU d)
+    | n < 0 = Vacio  -- no deberia pasar
+    | n == 1 = cuarteto (Vacio) (Vacio) (Vacio) (dibujoU d)
     | n > 1 =
         let l = lado (n-1) d
         in cuarteto (esquina (n-1) d) l (Rotar l) (dibujoU d)
@@ -44,7 +51,7 @@ noneto p q r s t u v w x =
         stu = Juntar 1 3 st u
         vw = Juntar 2 1 v w
         vwx = Juntar 1 3 vw x
-    in Apilar 1 3 (Apilar 2 1 pqr stu) vwx
+    in Encimar 1 3 (Encimar 2 1 pqr stu) vwx
 
 -- el dibujo de Escher:
 escher :: Int -> Escher -> Dibujo Escher
@@ -61,5 +68,5 @@ escher n e =
     in noneto p q r s t u v w x
 
 interpBas :: Escher -> ImagenFlotante
-interpBas True = trianguloBorde
-interpBas False = nada
+interpBas Triangulo x y z = triangulo x y z
+interpBas Vacio x y z = blank

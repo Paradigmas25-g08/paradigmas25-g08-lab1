@@ -4,7 +4,7 @@ import Graphics.Gloss.Interface.IO.Display
 import Graphics.UI.GLUT.Begin
 import Dibujo
 import Interp
-import qualified Basica.Ejemplo as E
+import qualified Basica.Escher as E
 import qualified Graphics.Gloss.Data.Point.Arithmetic as V
 
 --Funciones para rellenar el fondo de la imagen inicial
