@@ -8,7 +8,7 @@ data Dibujo a =  Basica a
               | Apilar Float Float (Dibujo a) (Dibujo a) 
               | Juntar Float Float (Dibujo a) (Dibujo a)
               | Encimar (Dibujo a) (Dibujo a)
-
+       deriving(Show)
 
 -- Composición n-veces de una función con sí misma.
 comp :: (a -> a) -> Int -> a -> a
@@ -89,8 +89,6 @@ foldDib fBas fRot fEs fRot45 fApi fJun fEn d =
               Apilar x y dib1 dib2 -> fApi x y (foldDibRecur dib1) (foldDibRecur dib2)
               Juntar x y dib1 dib2 -> fJun x y (foldDibRecur dib1) (foldDibRecur dib2)
               Encimar dib1 dib2 -> fEn (foldDibRecur dib1) (foldDibRecur dib2)
-
-
 
 
 

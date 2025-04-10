@@ -4,8 +4,6 @@ import Dibujo
 
 type Pred a = a -> Bool
 
---Pred(Dibujo a) = Dibujo a -> Bool
-
 --Para la definiciones de la funciones de este modulo, no pueden utilizar
 --pattern-matching, sino alto orden a traves de la funcion foldDib, mapDib 
 
@@ -18,7 +16,6 @@ type Pred a = a -> Bool
 cambiar :: Pred a -> a -> Dibujo a -> Dibujo a
 cambiar p f dib = mapDib (\x -> if p x then f else x) dib
 
---cambiar (==Triangulo) r180 Rotar(Apilar 1 1 (Espejar (Basica Triangulo))(Basica Cuadrado))
 -- Alguna básica satisface el predicado.    
 anyDib :: Pred a -> Dibujo a -> Bool
 anyDib p dib = foldDib (\x -> p x) (\x -> x) (\x -> x) (\x -> x) (\i j x y -> x || y) (\i j x y -> x || y) (\x y -> x || y) dib
@@ -28,34 +25,35 @@ allDib :: Pred a -> Dibujo a -> Bool
 allDib p d = foldDib (\x -> p x) (\x -> x) (\x -> x) (\x -> x) (\i j x y -> x && y) (\i j x y -> x && y) (\x y -> x && y) d
 
 -- Hay 4 rotaciones seguidas.
+type Acum = (Int, Bool)
+
 esRot360 :: Pred (Dibujo a)
-esRot360 =
-  foldDib
-    (\_ -> False)
-    (\x -> case x of
-             (Rotar (Rotar (Rotar (Rotar _)))) -> True
-             _ -> False)
-    (\_ -> False)
-    (\_ -> False)
-    (\_ _ x y -> x || y)
-    (\_ _ x y -> x || y)
-    (\x y -> x || y)
+esRot360 dibujo =
+  snd $ foldDib
+    (const (0, False))  -- fBas: ignora el contenido y devuelve (0, False)
+    (\acum -> (fst acum + 1, (snd acum) || (fst acum + 1 >= 4)))  -- fRot: incrementa el contador y evalúa el flag
+    (\acum -> (0, snd acum))  -- fEs: reinicia el contador, dejando la flag intacta
+    (\acum -> (0, snd acum))  -- fRot45: igual que fEs
+    (\x y acum1 acum2 -> (0, (snd acum1) || (snd acum2)))  -- fApi: combina ambos acumuladores, reiniciando el contador
+    (\x y acum1 acum2 -> (0, (snd acum1) || (snd acum2)))  -- fJun: idem para juntar
+    (\acum1 acum2 -> (0, (snd acum1) || (snd acum2)))        -- fEn: idem para encimar
+    dibujo
 
 -- Hay 2 espejados seguidos.
 esFlip2 :: Pred (Dibujo a)
-esFlip2 =
-  foldDib
-    (\_ -> False)
-    (\_ -> False)
-    (\x -> case x of
-             Espejar (Espejar _) -> True
-             _ -> False)
-    (\_ -> False)
-    (\_ _ x y -> x || y)
-    (\_ _ x y -> x || y)
-    (\x y -> x || y)
+esFlip2 dibujo =
+  snd $ foldDib
+    (const (0, False))  -- fBas: ignora el contenido y devuelve (0, False)
+    (\acum -> (0, snd acum))  -- fRot: reinicia el contador, dejando la flag intacta
+    (\acum -> (fst acum + 1, (snd acum) || (fst acum + 1 >= 2)))  -- fEs: incrementa el contador y evalúa el flag
+    (\acum -> (0, snd acum))  -- fRot45: igual que fRot
+    (\x y acum1 acum2 -> (0, (snd acum1) || (snd acum2)))  -- fApi: combina ambos acumuladores, reiniciando el contador
+    (\x y acum1 acum2 -> (0, (snd acum1) || (snd acum2)))  -- fJun: idem para juntar
+    (\acum1 acum2 -> (0, (snd acum1) || (snd acum2)))        -- fEn: idem para encimar
+    dibujo
 
-data Superfluo = RotacionSuperflua | FlipSuperfluo
+data Superfluo = RotacionSuperflua | FlipSuperfluo 
+  deriving (Show)
 
 ---- Chequea si el dibujo tiene una rotacion superflua
 errorRotacion :: Dibujo a -> [Superfluo]
@@ -68,4 +66,4 @@ errorFlip dib  = if esFlip2 dib then [FlipSuperfluo] else []
 -- Aplica todos los chequeos y acumula todos los errores, y
 -- sólo devuelve la figura si no hubo ningún error.
 checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
-checkSuperfluo dib = if (esRot360 dib || esFlip2 dib) then Left (errorRotacion dib ++ errorFlip dib) else Right dib
+checkSuperfluo dib = if (esRot360 dib || esFlip2 dib) then Left (errorRotacion dib ++ errorFlip dib) else Right
