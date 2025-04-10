@@ -15,7 +15,7 @@ type Pred a = a -> Bool
 -- Por ejemplo, `cambiar (== Triangulo) (\x -> Rotar (Basica x))` rota
 -- todos los triángulos.
 
-cambiar :: Pred a -> (a -> Dibujo a) -> Dibujo a -> Dibujo a
+cambiar :: Pred a -> a -> Dibujo a -> Dibujo a
 cambiar p f dib = mapDib (\x -> if p x then f else x) dib
 
 --cambiar (==Triangulo) r180 Rotar(Apilar 1 1 (Espejar (Basica Triangulo))(Basica Cuadrado))
@@ -29,13 +29,31 @@ allDib p d = foldDib (\x -> p x) (\x -> x) (\x -> x) (\x -> x) (\i j x y -> x &&
 
 -- Hay 4 rotaciones seguidas.
 esRot360 :: Pred (Dibujo a)
-esRot360 dib = foldDib (\x -> False)(\x -> if tresRot x then True else x) (\x -> x)(\x -> x)(\i j x y -> x || y)(\i j x y -> x || y)(\x y -> x || y) dib
-
+esRot360 =
+  foldDib
+    (\_ -> False)
+    (\x -> case x of
+             (Rotar (Rotar (Rotar (Rotar _)))) -> True
+             _ -> False)
+    (\_ -> False)
+    (\_ -> False)
+    (\_ _ x y -> x || y)
+    (\_ _ x y -> x || y)
+    (\x y -> x || y)
 
 -- Hay 2 espejados seguidos.
 esFlip2 :: Pred (Dibujo a)
-esFlip2 dib = anyDib (== Espejar(Espejar (x))) dib
-
+esFlip2 =
+  foldDib
+    (\_ -> False)
+    (\_ -> False)
+    (\x -> case x of
+             Espejar (Espejar _) -> True
+             _ -> False)
+    (\_ -> False)
+    (\_ _ x y -> x || y)
+    (\_ _ x y -> x || y)
+    (\x y -> x || y)
 
 data Superfluo = RotacionSuperflua | FlipSuperfluo
 
@@ -50,4 +68,4 @@ errorFlip dib  = if esFlip2 dib then [FlipSuperfluo] else []
 -- Aplica todos los chequeos y acumula todos los errores, y
 -- sólo devuelve la figura si no hubo ningún error.
 checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
-checkSuperfluo dib = if (esRot360 dib || esFlip2 dib) then Left errorRotacion dib ++ errorFlip dib else Right dib
+checkSuperfluo dib = if (esRot360 dib || esFlip2 dib) then Left (errorRotacion dib ++ errorFlip dib) else Right dib

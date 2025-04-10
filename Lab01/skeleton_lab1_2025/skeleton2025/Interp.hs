@@ -40,7 +40,7 @@ interp_apilar n m f g = img
 interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
 interp_juntar n m f g = img
     where 
-        img x w h = pictures[(f(x) (w') (h)), (g(x V.+ w) (r' V.* w) (h))]
+        img x w h = pictures[(f(x) (w') (h)), (g(x V.+ w') (r' V.* w) (h))]
             where   r' = n/(m+n)
                     r = m/(m+n)
                     w'= r V.* w

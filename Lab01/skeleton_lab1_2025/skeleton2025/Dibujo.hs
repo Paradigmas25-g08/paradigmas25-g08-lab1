@@ -44,7 +44,7 @@ r270 dib = comp r90 3 dib
 
 -- Dadas cuatro dibujos las ubica en los cuatro cuadrantes.
 cuarteto :: Dibujo a -> Dibujo a -> Dibujo a -> Dibujo a -> Dibujo a
-cuarteto dib1 dib2 dib3 dib4 = (.-.) ((///) dib2 dib1) ((///) dib3 dib4)
+cuarteto dib1 dib2 dib3 dib4 = (.-.) ((///) dib1 dib2) ((///) dib3 dib4)
 
 -- Una dibujo repetido con las cuatro rotaciones, superpuestas.
 encimar4 :: Dibujo a -> Dibujo a
