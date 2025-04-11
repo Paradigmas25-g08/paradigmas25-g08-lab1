@@ -66,4 +66,4 @@ errorFlip dib  = if esFlip2 dib then [FlipSuperfluo] else []
 -- Aplica todos los chequeos y acumula todos los errores, y
 -- sólo devuelve la figura si no hubo ningún error.
 checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
-checkSuperfluo dib = if (esRot360 dib || esFlip2 dib) then Left (errorRotacion dib ++ errorFlip dib) else Right
+checkSuperfluo dib = if (esRot360 dib || esFlip2 dib) then Left (errorRotacion dib ++ errorFlip dib) else Right dib
